@@ -18,7 +18,6 @@ class MainMenuScene extends Phaser.Scene {
     create() {
         console.log("Main Menu Loaded!");
 
-        // Add retro neon title text in the middle of the canvas
         this.add.text(112, 50, 'PAC-MAN VS', { 
             fontSize: '24px', 
             fill: '#fff',
