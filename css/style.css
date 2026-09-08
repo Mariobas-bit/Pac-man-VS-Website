@@ -12,5 +12,6 @@ body {
 #game-div canvas {
     border: 4px solid #1923cf; /* Retro blue neon border around the game screen */
     box-shadow: 0 0 20px #1923cf;
+    image-rendering: pixelated;
     width: 1000px
 }
