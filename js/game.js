@@ -113,7 +113,18 @@ const config = {
     parent: 'game-div',
     width: 224,
     height: 288,
-    physics: { default: 'arcade', arcade: { debug: false } },
+    pixelArt: true,
+
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
+    
+    physics: {
+        default: 'arcade',
+        arcade: { debug: false }
+    },
+    
     scene: [MainMenuScene]
 };
 
