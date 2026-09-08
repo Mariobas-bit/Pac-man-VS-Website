@@ -37,7 +37,7 @@ class MainMenuScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         socket.on('connect', () => {
-            statusText.setText('SERVER LIVE! ENTERING LOBBY...');
+            statusText.setText('SERVER LIVE!');
             statusText.setFill('#00ff00');
             
             socket.emit('join_game_room', { room_code: '1234' });
