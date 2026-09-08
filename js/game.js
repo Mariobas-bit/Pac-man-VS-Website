@@ -9,51 +9,102 @@ let isHost = false;
 class MainMenuScene extends Phaser.Scene {
     constructor() {
         super({ key: 'MainMenuScene' });
-    }
-
-    preload() {
-        //loads assets
+        this.typedCode = "";
+        this.menuMode = "SELECT";
     }
 
     create() {
-        console.log("Main Menu Loaded!");
-
-        this.add.text(112, 50, 'PAC-MAN VS', { 
-            fontSize: '24px', 
-            fill: '#fff',
-            fontFamily: 'monospace'
-        }).setOrigin(0.5);
-
-        this.add.text(112, 100, 'ONLINE', { 
-            fontSize: '16px', 
-            fill: '#ffff00',
-            fontFamily: 'monospace'
-        }).setOrigin(0.5);
-
-        let statusText = this.add.text(112, 200, 'CONNECTING TO CLOUD...', { 
-            fontSize: '10px', 
-            fill: '#888',
-            fontFamily: 'monospace'
-        }).setOrigin(0.5);
-
-        socket.on('connect', () => {
-            statusText.setText('SERVER LIVE!');
-            statusText.setFill('#00ff00');
-            
-            socket.emit('join_game_room', { room_code: '1234' });
-        });
+        console.log("Main Menu Scene Loaded");
+        this.renderMenuText();
 
         socket.on('lobby_update', (data) => {
             currentRoomCode = data.room_code;
             isHost = data.is_host;
             
-            this.add.text(112, 240, `ROOM: ${currentRoomCode}`, { fontSize: '12px', fill: '#fff' }).setOrigin(0.5);
-            statusText.setText(`PLAYERS READY: ${data.player_count}/4`);
+            this.children.removeAll();
+            
+            this.add.text(112, 40, 'GAME LOBBY', { fontSize: '20px', fill: '#00ffff', fontFamily: 'monospace' }).setOrigin(0.5);
+            this.add.text(112, 90, `ROOM CODE: ${currentRoomCode}`, { fontSize: '16px', fill: '#ffffff', fontFamily: 'monospace', fontWeight: 'bold' }).setOrigin(0.5);
+            this.add.text(112, 140, `PLAYERS: ${data.player_count}/4`, { fontSize: '12px', fill: '#ffff00', fontFamily: 'monospace' }).setOrigin(0.5);
+            
+            if (isHost) {
+                this.add.text(112, 200, 'YOU ARE THE HOST', { fontSize: '10px', fill: '#00ff00', fontFamily: 'monospace' }).setOrigin(0.5);
+                this.add.text(112, 230, 'PRESS [ENTER] TO START', { fontSize: '10px', fill: '#ff00ff', fontFamily: 'monospace' }).setOrigin(0.5);
+            } else {
+                this.add.text(112, 200, 'WAITING FOR HOST...', { fontSize: '10px', fill: '#ff0000', fontFamily: 'monospace' }).setOrigin(0.5);
+            }
+        });
+
+        socket.on('error_message', (data) => {
+            this.showErrorMessage(data.msg);
+        });
+
+        this.input.keyboard.on('keydown', (event) => {
+            const key = event.key.toUpperCase();
+
+            if (this.menuMode === "SELECT") {
+                if (key === 'H') {
+                    socket.emit('create_game_room');
+                } else if (key === 'J') {
+                    this.menuMode = "TYPING";
+                    this.typedCode = "";
+                    this.renderMenuText();
+                }
+            } 
+            else if (this.menuMode === "TYPING") {
+                if (event.keyCode === 8 && this.typedCode.length > 0) {
+                    this.typedCode = this.typedCode.slice(0, -1);
+                    this.renderMenuText();
+                } 
+                else if (this.typedCode.length < 4 && /^[A-Z0-9]$/.test(key)) {
+                    this.typedCode += key;
+                    this.renderMenuText();
+                } 
+                else if (key === 'ENTER' && this.typedCode.length === 4) {
+                    socket.emit('join_game_room', { room_code: this.typedCode });
+                }
+                else if (key === 'ESCAPE') {
+                    this.menuMode = "SELECT";
+                    this.renderMenuText();
+                }
+            }
+
+            if (currentRoomCode !== "" && isHost && key === 'ENTER') {
+                socket.emit('start_game_request', { 
+                    room_code: currentRoomCode,
+                    points_to_win: 1000 
+                });
+            }
         });
     }
 
-    update() {
-        //placeholder
+    renderMenuText() {
+        this.children.removeAll();
+
+        this.add.text(112, 40, 'PAC-MAN VS', { fontSize: '24px', fill: '#fff', fontFamily: 'monospace' }).setOrigin(0.5);
+        this.add.text(112, 80, 'ONLINE', { fontSize: '14px', fill: '#ffff00', fontFamily: 'monospace' }).setOrigin(0.5);
+
+        if (this.menuMode === "SELECT") {
+            this.add.text(112, 150, 'PRESS [H] TO HOST', { fontSize: '12px', fill: '#00ffff', fontFamily: 'monospace' }).setOrigin(0.5);
+            this.add.text(112, 190, 'PRESS [J] TO JOIN', { fontSize: '12px', fill: '#ff00ff', fontFamily: 'monospace' }).setOrigin(0.5);
+        } 
+        else if (this.menuMode === "TYPING") {
+            this.add.text(112, 130, 'ENTER 4-CHARACTER CODE:', { fontSize: '10px', fill: '#aaa', fontFamily: 'monospace' }).setOrigin(0.5);
+            
+            let displayString = this.typedCode;
+            while(displayString.length < 4) displayString += "_"; // Fills empty slots with underscores like 'A9__'
+            
+            this.add.text(112, 170, displayString.split("").join(" "), { fontSize: '20px', fill: '#fff', fontFamily: 'monospace', fontWeight: 'bold' }).setOrigin(0.5);
+            
+            this.add.text(112, 220, 'PRESS [ENTER] TO JOIN', { fontSize: '9px', fill: '#00ff00', fontFamily: 'monospace' }).setOrigin(0.5);
+            this.add.text(112, 245, 'PRESS [ESC] TO GO BACK', { fontSize: '8px', fill: '#555', fontFamily: 'monospace' }).setOrigin(0.5);
+        }
+    }
+
+    showErrorMessage(msg) {
+        this.renderMenuText();
+        let errText = this.add.text(112, 275, `ERROR: ${msg}`, { fontSize: '9px', fill: '#ff0000', fontFamily: 'monospace' }).setOrigin(0.5);
+        this.time.delayedCall(3000, () => { errText.destroy(); });
     }
 }
 
@@ -62,11 +113,8 @@ const config = {
     parent: 'game-div',
     width: 224,
     height: 288,
-    physics: {
-        default: 'arcade',
-        arcade: { debug: false }
-    },
-    scene: [MainMenuScene] 
+    physics: { default: 'arcade', arcade: { debug: false } },
+    scene: [MainMenuScene]
 };
 
 const game = new Phaser.Game(config);
