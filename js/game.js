@@ -42,16 +42,25 @@ class MainMenuScene extends Phaser.Scene {
         this.input.keyboard.on('keydown', (event) => {
             const key = event.key.toUpperCase();
 
-            if (this.menuMode === "SELECT") {
+            if (this.menuMode === "Select") {
                 if (key === 'H') {
                     socket.emit('create_game_room');
+                    this.menuMode = "Hosting"
                 } else if (key === 'J') {
-                    this.menuMode = "TYPING";
+                    this.menuMode = "Typing";
                     this.typedCode = "";
                     this.renderMenuText();
                 }
             } 
-            else if (this.menuMode === "TYPING") {
+            else if (this.menuMode === "Hosting") {
+                if (currentRoomCode !== "" && isHost && key === 'ENTER') {
+                    socket.emit('start_game_request', { 
+                        room_code: currentRoomCode,
+                        points_to_win: 1000 
+                    });
+                }
+            }
+            else if (this.menuMode === "Typing") {
                 if (event.keyCode === 8 && this.typedCode.length > 0) {
                     this.typedCode = this.typedCode.slice(0, -1);
                     this.renderMenuText();
@@ -64,18 +73,10 @@ class MainMenuScene extends Phaser.Scene {
                     socket.emit('join_game_room', { room_code: this.typedCode });
                 }
                 else if (key === 'ESCAPE') {
-                    this.menuMode = "SELECT";
+                    this.menuMode = "Select";
                     this.renderMenuText();
                 }
             }
-
-            if (currentRoomCode !== "" && isHost && key === 'ENTER') {
-                socket.emit('start_game_request', { 
-                    room_code: currentRoomCode,
-                    points_to_win: 1000 
-                });
-            }
-        });
     }
 
     renderMenuText() {
@@ -84,11 +85,11 @@ class MainMenuScene extends Phaser.Scene {
         this.add.text(112, 40, 'PAC-MAN VS', { fontSize: '24px', fill: '#fff', fontFamily: 'monospace' }).setOrigin(0.5);
         this.add.text(112, 80, 'ONLINE', { fontSize: '14px', fill: '#ffff00', fontFamily: 'monospace' }).setOrigin(0.5);
 
-        if (this.menuMode === "SELECT") {
+        if (this.menuMode === "Select") {
             this.add.text(112, 150, 'PRESS [H] TO HOST', { fontSize: '12px', fill: '#00ffff', fontFamily: 'monospace' }).setOrigin(0.5);
             this.add.text(112, 190, 'PRESS [J] TO JOIN', { fontSize: '12px', fill: '#ff00ff', fontFamily: 'monospace' }).setOrigin(0.5);
         } 
-        else if (this.menuMode === "TYPING") {
+        else if (this.menuMode === "Typing") {
             this.add.text(112, 130, 'ENTER 4-CHARACTER CODE:', { fontSize: '10px', fill: '#aaa', fontFamily: 'monospace' }).setOrigin(0.5);
             
             let displayString = this.typedCode;
