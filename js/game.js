@@ -77,6 +77,7 @@ class MainMenuScene extends Phaser.Scene {
                     this.renderMenuText();
                 }
             }
+        });
     }
 
     renderMenuText() {
