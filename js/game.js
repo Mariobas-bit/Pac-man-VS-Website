@@ -10,7 +10,7 @@ class MainMenuScene extends Phaser.Scene {
     constructor() {
         super({ key: 'MainMenuScene' });
         this.typedCode = "";
-        this.menuMode = "SELECT";
+        this.menuMode = "Select";
     }
 
     create() {
