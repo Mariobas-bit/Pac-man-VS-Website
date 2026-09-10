@@ -53,7 +53,7 @@ class MainMenuScene extends Phaser.Scene {
                 }
             } 
             else if (this.menuMode === "Hosting") {
-                if (currentRoomCode !== "" && isHost && key === 'ENTER') {
+                if (isHost && key === 'ENTER') {
                     socket.emit('start_game_request', { 
                         room_code: currentRoomCode,
                         points_to_win: 1000 
