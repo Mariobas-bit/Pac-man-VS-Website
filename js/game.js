@@ -19,6 +19,9 @@ class MainMenuScene extends Phaser.Scene {
         this.renderMenuText();
         
         if (this.menuMode === "Wait") {
+            socket.emit('connect', {
+                
+            })
             socket.on('server_on', (data) => {
                this.menuMode = "Select"; 
             });
