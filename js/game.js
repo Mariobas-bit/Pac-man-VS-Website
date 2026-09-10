@@ -25,7 +25,6 @@ class MainMenuScene extends Phaser.Scene {
             socket.on('server_on', (data) => {
                this.menuMode = "Select"; 
             });
-            return
         }
 
         socket.on('lobby_update', (data) => {
@@ -108,7 +107,7 @@ class MainMenuScene extends Phaser.Scene {
             this.add.text(112, 245, 'PRESS [ESC] TO GO BACK', { fontSize: '8px', fill: '#555', fontFamily: 'monospace' }).setOrigin(0.5);
         }
         else if (this.menuMode === "Wait") {
-            this.add.text(112,170, 'WAITING FOR SERVER', { fontSize: '24px', fill: '#ffffff', fontFamily: 'monospace'}).setOrigin(0,5);
+            this.add.text(112,200, 'WAITING FOR SERVER', { fontSize: '18px', fill: '#fff', fontFamily: 'monospace'}).setOrigin(0,5);
         }
     }
 
