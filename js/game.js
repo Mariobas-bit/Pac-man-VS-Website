@@ -33,6 +33,7 @@ class MainMenuScene extends Phaser.Scene {
             } else {
                 this.add.text(112, 200, 'WAITING FOR HOST...', { fontSize: '10px', fill: '#ff0000', fontFamily: 'monospace' }).setOrigin(0.5);
             }
+            this.menuMode = "Lobby"
         });
 
         socket.on('error_message', (data) => {
