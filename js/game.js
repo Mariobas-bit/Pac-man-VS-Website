@@ -11,12 +11,19 @@ class MainMenuScene extends Phaser.Scene {
     constructor() {
         super({ key: 'MainMenuScene' });
         this.typedCode = "";
-        this.menuMode = "Select";
+        this.menuMode = "Wait";
     }
 
     create() {
         console.log("Main Menu Scene Loaded");
         this.renderMenuText();
+        
+        if (this.menuMode === "Wait") {
+            socket.on('server_on', (data) => {
+               this.menuMode = "Select"; 
+            });
+            return
+        }
 
         socket.on('lobby_update', (data) => {
             currentRoomCode = data.room_code;
@@ -96,6 +103,9 @@ class MainMenuScene extends Phaser.Scene {
             this.add.text(112, 170, displayString.split("").join(" "), { fontSize: '20px', fill: '#fff', fontFamily: 'monospace', fontWeight: 'bold' }).setOrigin(0.5);
             this.add.text(112, 220, 'PRESS [ENTER] TO JOIN', { fontSize: '9px', fill: '#00ff00', fontFamily: 'monospace' }).setOrigin(0.5);
             this.add.text(112, 245, 'PRESS [ESC] TO GO BACK', { fontSize: '8px', fill: '#555', fontFamily: 'monospace' }).setOrigin(0.5);
+        }
+        else if (this.menuMode === "Wait") {
+            this.add.text(112,170, 'WAITING FOR SERVER', { fontSize: '24px', fill: '#ffffff', fontFamily: 'monospace'}).setOrigin(0,5);
         }
     }
 
