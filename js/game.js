@@ -22,12 +22,14 @@ class MainMenuScene extends Phaser.Scene {
             currentRoomCode = data.room_code;
             lastLobbyData = data;
             this.menuMode = "Lobby";
+            console.log(data);
             
             this.renderLobbyInterface();
         });
 
         socket.on('lobby_status_personal', (data) => {
             isHost = data.is_host;
+            console.log(data)
             
             if (this.menuMode === "Lobby") {
                 this.renderLobbyInterface();
