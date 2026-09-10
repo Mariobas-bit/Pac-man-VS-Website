@@ -36,6 +36,14 @@ class MainMenuScene extends Phaser.Scene {
             this.menuMode = "Lobby"
         });
 
+        socket.on('lobby_status_personal', (data) => {
+            isHost = data.is_host;
+    
+            if (this.scene.isActive('MainMenuScene')) {
+                this.renderLobbyInterface(); 
+            }
+        });
+
         socket.on('error_message', (data) => {
             this.showErrorMessage(data.msg);
         });
