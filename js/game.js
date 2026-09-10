@@ -11,24 +11,22 @@ class MainMenuScene extends Phaser.Scene {
     constructor() {
         super({ key: 'MainMenuScene' });
         this.typedCode = "";
-        this.menuMode = "Wait"; // Starts in Wait mode until server answers
+        this.menuMode = "Wait";
     }
 
     create() {
         console.log("Main Menu Scene Loaded");
         this.renderMenuText();
 
-        // FIX 1: Only ask the server if it's awake AFTER we successfully connect!
         socket.on('connect', () => {
             console.log("Connected to network portal! Checking server state...");
             socket.emit('server_check', {status: true});
         });
 
-        // Listen for the server to say "I am awake!"
         socket.on('server_on', (data) => {
             console.log("Server responded! Moving to Selection Menu.");
             this.menuMode = "Select";
-            this.renderMenuText(); // Redraw screen to show HOST / JOIN buttons
+            this.renderMenuText();
         });
 
         socket.on('lobby_update', (data) => {
@@ -100,7 +98,6 @@ class MainMenuScene extends Phaser.Scene {
             this.add.text(112, 220, 'PRESS [ENTER] TO JOIN', { fontSize: '9px', fill: '#00ff00', fontFamily: 'monospace' }).setOrigin(0.5);
             this.add.text(112, 245, 'PRESS [ESC] TO GO BACK', { fontSize: '8px', fill: '#555', fontFamily: 'monospace' }).setOrigin(0.5);
         } else if (this.menuMode === "Wait") {
-            // FIX 2: Changed from (0,5) to (0.5) to fix the rendering crash!
             this.add.text(112, 200, 'WAITING FOR SERVER', { fontSize: '12px', fill: '#fff', fontFamily: 'monospace'}).setOrigin(0.5);
         }
     }
