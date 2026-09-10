@@ -11,34 +11,37 @@ class MainMenuScene extends Phaser.Scene {
     constructor() {
         super({ key: 'MainMenuScene' });
         this.typedCode = "";
-        this.menuMode = "Wait";
+        this.menuMode = "Wait"; // Starts in Wait mode until server answers
     }
 
     create() {
         console.log("Main Menu Scene Loaded");
         this.renderMenuText();
-        
-        if (this.menuMode === "Wait") {
+
+        // FIX 1: Only ask the server if it's awake AFTER we successfully connect!
+        socket.on('connect', () => {
+            console.log("Connected to network portal! Checking server state...");
             socket.emit('server_check', {status: true});
-            
-            socket.on('server_on', (data) => {
-               this.menuMode = "Select"; 
-            });
-        }
+        });
+
+        // Listen for the server to say "I am awake!"
+        socket.on('server_on', (data) => {
+            console.log("Server responded! Moving to Selection Menu.");
+            this.menuMode = "Select";
+            this.renderMenuText(); // Redraw screen to show HOST / JOIN buttons
+        });
 
         socket.on('lobby_update', (data) => {
             currentRoomCode = data.room_code;
             lastLobbyData = data;
             this.menuMode = "Lobby";
             console.log(data);
-            
             this.renderLobbyInterface();
         });
 
         socket.on('lobby_status_personal', (data) => {
             isHost = data.is_host;
-            console.log(data)
-            
+            console.log(data);
             if (this.menuMode === "Lobby") {
                 this.renderLobbyInterface();
             }
@@ -59,8 +62,7 @@ class MainMenuScene extends Phaser.Scene {
                     this.typedCode = "";
                     this.renderMenuText();
                 }
-            } 
-            else if (this.menuMode === "Typing") {
+            } else if (this.menuMode === "Typing") {
                 if (event.keyCode === 8 && this.typedCode.length > 0) {
                     this.typedCode = this.typedCode.slice(0, -1);
                     this.renderMenuText();
@@ -73,13 +75,9 @@ class MainMenuScene extends Phaser.Scene {
                     this.menuMode = "Select";
                     this.renderMenuText();
                 }
-            } 
-            else if (this.menuMode === "Lobby") {
+            } else if (this.menuMode === "Lobby") {
                 if (isHost && key === 'ENTER') {
-                    socket.emit('start_game_request', { 
-                        room_code: currentRoomCode, 
-                        points_to_win: 1000 
-                    });
+                    socket.emit('start_game_request', { room_code: currentRoomCode, points_to_win: 1000 });
                 }
             }
         });
@@ -94,31 +92,26 @@ class MainMenuScene extends Phaser.Scene {
         if (this.menuMode === "Select") {
             this.add.text(112, 150, 'PRESS [H] TO HOST', { fontSize: '12px', fill: '#00ffff', fontFamily: 'monospace' }).setOrigin(0.5);
             this.add.text(112, 190, 'PRESS [J] TO JOIN', { fontSize: '12px', fill: '#ff00ff', fontFamily: 'monospace' }).setOrigin(0.5);
-        } 
-        else if (this.menuMode === "Typing") {
+        } else if (this.menuMode === "Typing") {
             this.add.text(112, 130, 'ENTER 4-CHARACTER CODE:', { fontSize: '10px', fill: '#aaa', fontFamily: 'monospace' }).setOrigin(0.5);
-            
             let displayString = this.typedCode;
             while(displayString.length < 4) displayString += "_";
-            
             this.add.text(112, 170, displayString.split("").join(" "), { fontSize: '20px', fill: '#fff', fontFamily: 'monospace', fontWeight: 'bold' }).setOrigin(0.5);
             this.add.text(112, 220, 'PRESS [ENTER] TO JOIN', { fontSize: '9px', fill: '#00ff00', fontFamily: 'monospace' }).setOrigin(0.5);
             this.add.text(112, 245, 'PRESS [ESC] TO GO BACK', { fontSize: '8px', fill: '#555', fontFamily: 'monospace' }).setOrigin(0.5);
-        }
-        else if (this.menuMode === "Wait") {
-            this.add.text(112,200, 'WAITING FOR SERVER', { fontSize: '18px', fill: '#fff', fontFamily: 'monospace'}).setOrigin(0,5);
+        } else if (this.menuMode === "Wait") {
+            // FIX 2: Changed from (0,5) to (0.5) to fix the rendering crash!
+            this.add.text(112, 200, 'WAITING FOR SERVER', { fontSize: '12px', fill: '#fff', fontFamily: 'monospace'}).setOrigin(0.5);
         }
     }
 
     renderLobbyInterface() {
         this.children.removeAll();
-        
         let count = lastLobbyData ? lastLobbyData.player_count : 1;
-
         this.add.text(112, 40, 'GAME LOBBY', { fontSize: '20px', fill: '#00ffff', fontFamily: 'monospace' }).setOrigin(0.5);
         this.add.text(112, 90, `ROOM CODE: ${currentRoomCode}`, { fontSize: '16px', fill: '#ffffff', fontFamily: 'monospace', fontWeight: 'bold' }).setOrigin(0.5);
         this.add.text(112, 140, `PLAYERS: ${count}/4`, { fontSize: '12px', fill: '#ffff00', fontFamily: 'monospace' }).setOrigin(0.5);
-
+        
         if (isHost) {
             this.add.text(112, 200, 'YOU ARE THE HOST', { fontSize: '10px', fill: '#00ff00', fontFamily: 'monospace' }).setOrigin(0.5);
             this.add.text(112, 230, 'PRESS [ENTER] TO START', { fontSize: '10px', fill: '#ff00ff', fontFamily: 'monospace' }).setOrigin(0.5);
@@ -128,7 +121,7 @@ class MainMenuScene extends Phaser.Scene {
     }
 
     showErrorMessage(msg) {
-        this.menuMode = "Select"
+        this.menuMode = "Select";
         this.renderMenuText();
         let errText = this.add.text(112, 275, `ERROR: ${msg}`, { fontSize: '9px', fill: '#ff0000', fontFamily: 'monospace' }).setOrigin(0.5);
         this.time.delayedCall(3000, () => { errText.destroy(); });
