@@ -120,7 +120,7 @@ class MainMenuScene extends Phaser.Scene {
     showErrorMessage(msg) {
         this.menuMode = "Select";
         this.renderMenuText();
-        let errText = this.add.text(112, 275, `ERROR: ${msg}`, { fontSize: '9px', fill: '#ff0000', fontFamily: 'monospace' }).setOrigin(0.5);
+        let errText = this.add.text(112, 275, `ERROR: ${msg}`, { fontSize: '14px', fill: '#ff0000', fontFamily: 'monospace' }).setOrigin(0.5);
         this.time.delayedCall(3000, () => { errText.destroy(); });
     }
 }
