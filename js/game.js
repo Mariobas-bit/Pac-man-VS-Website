@@ -29,8 +29,8 @@ class MainMenuScene extends Phaser.Scene {
 
         socket.on('connect', () => {
             console.log("Connected to network portal! Checking server state...");
-            socket.emit('server_check', {status: true});
             serverLoadMusic.play()
+            socket.emit('server_check', {status: true});
         });
 
         socket.on('server_on', (data) => {
