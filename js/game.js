@@ -15,21 +15,21 @@ class MainMenuScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.audio('serverConnecting', 'assets/music/1-22. Steam Gardens.mp3')
-        this.load.audio('mainMenu', 'assets/music/01. Original Pac-Man World.mp3')
-        this.load.audio('Pac-Man World', 'assets/music/01. Original Pac-Man World.mp3')
-        this.load.audio('steamGardens', 'assets/music/1-22. Steam Gardens.mp3')
+        this.load.audio('serverConnecting', 'assets/music/1-22. Steam Gardens.mp3');
+        this.load.audio('mainMenu', 'assets/music/01. Original Pac-Man World.mp3');
+        this.load.audio('Pac-Man World', 'assets/music/01. Original Pac-Man World.mp3');
+        this.load.audio('steamGardens', 'assets/music/1-22. Steam Gardens.mp3');
     }
 
     create() {
-        const serverLoadMusic = this.sound.add('serverConnecting', {loop: true, volume: 0.75})
-        const mainMenuMusic = this.sound.add('mainMenu', {loop: true, volume: 0.75})
+        this.serverLoadMusic = this.sound.add('serverConnecting', {loop: true, volume: 0.75});
+        this.mainMenuMusic = this.sound.add('mainMenu', {loop: true, volume: 0.75});
         console.log("Main Menu Scene Loaded");
         this.renderMenuText();
-        serverLoadMusic.play()
 
         socket.on('connect', () => {
             console.log("Connected to network portal! Checking server state...");
+            this.serverLoadMusic.play();
             socket.emit('server_check', {status: true});
         });
 
@@ -37,8 +37,8 @@ class MainMenuScene extends Phaser.Scene {
             console.log("Server responded! Moving to Selection Menu.");
             this.menuMode = "Select";
             this.renderMenuText();
-            serverLoadMusic.stop()
-            mainMenuMusic.play()
+            this.serverLoadMusic.stop()
+            this.mainMenuMusic.play()
         });
 
         socket.on('lobby_update', (data) => {
