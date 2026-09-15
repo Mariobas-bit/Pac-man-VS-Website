@@ -26,10 +26,10 @@ class MainMenuScene extends Phaser.Scene {
         const mainMenuMusic = this.sound.add('mainMenu', {loop: true, volume: 0.75})
         console.log("Main Menu Scene Loaded");
         this.renderMenuText();
+        serverLoadMusic.play()
 
         socket.on('connect', () => {
             console.log("Connected to network portal! Checking server state...");
-            serverLoadMusic.play()
             socket.emit('server_check', {status: true});
         });
 
